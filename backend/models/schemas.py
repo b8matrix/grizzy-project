@@ -1,4 +1,4 @@
-"""Pydantic models for ActiveLens API request/response schemas."""
+"""Pydantic models for Grizzy API request/response schemas."""
 
 from pydantic import BaseModel, Field
 from typing import Optional

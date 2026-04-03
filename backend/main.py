@@ -1,7 +1,7 @@
 """
-ActiveLens Backend — FastAPI Entry Point
+Grizzy Backend — FastAPI Entry Point
 =========================================
-The intelligence engine that powers the ActiveLens Chrome extension.
+The intelligence engine that powers the Grizzy Chrome extension.
 
 Endpoints:
   POST /syllabus/upload        — Upload a university syllabus PDF
@@ -14,11 +14,11 @@ Endpoints:
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from database import init_db
-from routers import syllabus, assessment, transcribe, transcript_fetch
+from routers import syllabus, assessment, transcribe, transcript_fetch, stt_fallback, integrity
 
 # ── Initialize App ──
 app = FastAPI(
-    title="ActiveLens API",
+    title="Grizzy API",
     description="Turning the entire internet into a mandatory, high-retention classroom.",
     version="1.0.0",
 )
@@ -37,6 +37,8 @@ app.include_router(syllabus.router)
 app.include_router(assessment.router)
 app.include_router(transcribe.router)
 app.include_router(transcript_fetch.router)
+app.include_router(stt_fallback.router)
+app.include_router(integrity.router)
 
 
 # ── Startup Event ──
@@ -44,8 +46,8 @@ app.include_router(transcript_fetch.router)
 def on_startup():
     """Initialize the SQLite database on server start."""
     init_db()
-    print("\n🎓 ActiveLens Backend is LIVE!")
-    print("   Docs: http://localhost:8000/docs")
+    print("\n[Grizzy] Backend is LIVE.")
+    print("   Interactive docs: append /docs to this server's URL.")
     print("   Ready to turn passive watching into active learning.\n")
 
 
@@ -54,7 +56,7 @@ def on_startup():
 async def root():
     return {
         "status": "active",
-        "project": "ActiveLens",
+        "project": "Grizzy",
         "tagline": "Turning the entire internet into a mandatory, high-retention classroom.",
         "endpoints": {
             "upload_syllabus": "POST /syllabus/upload",
@@ -63,5 +65,8 @@ async def root():
             "evaluate_answer": "POST /assessment/evaluate",
             "transcribe_audio": "POST /transcribe/audio",
             "get_transcript": "POST /get-transcript",
+            "generate_transcript_stt": "POST /generate-transcript",
+            "transcript_status": "GET /transcript-status",
+            "ai_score": "POST /integrity/ai-score",
         },
     }

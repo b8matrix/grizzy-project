@@ -4,6 +4,7 @@
  * Strategy 1 (Primary):   YouTube timedtext API (direct URL)
  * Strategy 2 (Secondary): ytInitialPlayerResponse page injection
  * Strategy 3 (Fallback):  Backend API using youtube-transcript-api
+ * Strategy 4 (STT):       Backend Whisper + yt-dlp (generates transcript from audio)
  *
  * All methods output: [{ start, end, text }]
  */
@@ -34,7 +35,7 @@ async function extractTranscript(videoId) {
   try {
     const cached = await chrome.storage.local.get(cacheKey);
     if (cached[cacheKey] && cached[cacheKey].length > 0) {
-      console.log('🎓 ActiveLens: Using cached transcript');
+      console.log('🎓 Grizzy: Using cached transcript');
       return cached[cacheKey];
     }
   } catch (_) { /* storage may fail in rare cases */ }
@@ -42,33 +43,42 @@ async function extractTranscript(videoId) {
   let transcript = null;
 
   // ── Strategy 1: YouTube timedtext API ──
-  console.log('🎓 ActiveLens: Trying Strategy 1 (timedtext API)...');
+  console.log('🎓 Grizzy: Trying Strategy 1 (timedtext API)...');
   transcript = await fetchTranscriptPrimary(videoId);
   if (transcript && transcript.length > 0) {
-    console.log(`🎓 ActiveLens: Strategy 1 succeeded (${transcript.length} segments)`);
+    console.log(`🎓 Grizzy: Strategy 1 succeeded (${transcript.length} segments)`);
     await cacheTranscript(cacheKey, transcript);
     return transcript;
   }
 
   // ── Strategy 2: ytInitialPlayerResponse ──
-  console.log('🎓 ActiveLens: Trying Strategy 2 (page player response)...');
+  console.log('🎓 Grizzy: Trying Strategy 2 (page player response)...');
   transcript = await fetchTranscriptSecondary(videoId);
   if (transcript && transcript.length > 0) {
-    console.log(`🎓 ActiveLens: Strategy 2 succeeded (${transcript.length} segments)`);
+    console.log(`🎓 Grizzy: Strategy 2 succeeded (${transcript.length} segments)`);
     await cacheTranscript(cacheKey, transcript);
     return transcript;
   }
 
   // ── Strategy 3: Backend fallback ──
-  console.log('🎓 ActiveLens: Trying Strategy 3 (backend fallback)...');
+  console.log('🎓 Grizzy: Trying Strategy 3 (backend fallback)...');
   transcript = await fetchTranscriptFallback(videoId);
   if (transcript && transcript.length > 0) {
-    console.log(`🎓 ActiveLens: Strategy 3 succeeded (${transcript.length} segments)`);
+    console.log(`🎓 Grizzy: Strategy 3 succeeded (${transcript.length} segments)`);
     await cacheTranscript(cacheKey, transcript);
     return transcript;
   }
 
-  console.warn('🎓 ActiveLens: All transcript strategies failed');
+  // ── Strategy 4: STT Fallback (Whisper + yt-dlp) ──
+  console.log('🎓 Grizzy: Trying Strategy 4 (STT generation)...');
+  transcript = await fetchTranscriptSTT(videoId);
+  if (transcript && transcript.length > 0) {
+    console.log(`🎓 Grizzy: Strategy 4 succeeded (${transcript.length} segments)`);
+    await cacheTranscript(cacheKey, transcript);
+    return transcript;
+  }
+
+  console.warn('🎓 Grizzy: All transcript strategies failed (including STT)');
   return null;
 }
 
@@ -203,7 +213,7 @@ function injectAndExtractCaptionTracks() {
     const timeout = setTimeout(() => resolve(null), 3000);
 
     function handler(event) {
-      if (event.data?.type === 'ACTIVELENS_CAPTION_TRACKS') {
+      if (event.data?.type === 'Grizzy_CAPTION_TRACKS') {
         clearTimeout(timeout);
         window.removeEventListener('message', handler);
         try {
@@ -239,7 +249,7 @@ function injectAndExtractCaptionTracks() {
           }
         } catch(e) {}
         window.postMessage({
-          type: 'ACTIVELENS_CAPTION_TRACKS',
+          type: 'Grizzy_CAPTION_TRACKS',
           tracks: tracks ? JSON.stringify(tracks) : null
         }, '*');
       })();
@@ -335,12 +345,130 @@ function standardizeTranscript(items) {
   if (!Array.isArray(items)) return [];
   return items
     .map(item => {
-      const start = item.start || 0;
-      const dur = item.duration || 0;
+      const start = typeof item.start === 'number' ? item.start : 0;
+      let end = typeof item.end === 'number' ? item.end : null;
+      let dur = typeof item.duration === 'number' ? item.duration : null;
+      if (end == null && dur != null) end = start + dur;
+      if (dur == null && end != null) dur = Math.max(0, end - start);
+      if (end == null && dur == null) end = start;
+      if (dur == null) dur = Math.max(0, end - start);
       const text = (item.text || '').replace(/\n/g, ' ').trim();
-      return { start, duration: dur, end: start + dur, text };
+      return { start, duration: dur, end, text };
     })
     .filter(e => e.text.length > 0);
+}
+
+// ─── Strategy 4: STT Generation Fallback ────────────────────
+
+/**
+ * Triggers backend Whisper transcription, then polls until complete.
+ * Returns standardized transcript or null.
+ */
+async function fetchTranscriptSTT(videoId) {
+  const MAX_POLLS = 120;
+  const POLL_INTERVAL = 5000;
+
+  const runOnce = async (forceRetry) => {
+    const triggerResp = await new Promise((resolve, reject) => {
+      chrome.runtime.sendMessage(
+        { type: 'STT_GENERATE_TRANSCRIPT', videoId, force: forceRetry },
+        (response) => {
+          if (chrome.runtime.lastError) {
+            reject(new Error(chrome.runtime.lastError.message));
+          } else {
+            resolve(response);
+          }
+        }
+      );
+    });
+
+    if (!triggerResp) return null;
+
+    if (triggerResp.status === 'completed' && triggerResp.transcript) {
+      return standardizeTranscript(triggerResp.transcript);
+    }
+
+    if (triggerResp.status === 'error') {
+      console.warn('Strategy 4: STT trigger returned error:', triggerResp.error);
+      return null;
+    }
+
+    if (triggerResp.status === 'processing') {
+      window.dispatchEvent(
+        new CustomEvent('Grizzy-stt-progress', {
+          detail: {
+            message:
+              'No captions found. Transcribing audio with Whisper (may take several minutes on long videos)...'
+          }
+        })
+      );
+
+      for (let i = 0; i < MAX_POLLS; i++) {
+        const pollResp = await new Promise((resolve, reject) => {
+          chrome.runtime.sendMessage(
+            { type: 'STT_POLL_STATUS', videoId },
+            (response) => {
+              if (chrome.runtime.lastError) {
+                reject(new Error(chrome.runtime.lastError.message));
+              } else {
+                resolve(response);
+              }
+            }
+          );
+        });
+
+        if (!pollResp) {
+          if (i < MAX_POLLS - 1) await new Promise((r) => setTimeout(r, POLL_INTERVAL));
+          continue;
+        }
+
+        if (pollResp.status === 'completed' && pollResp.transcript) {
+          return standardizeTranscript(pollResp.transcript);
+        }
+
+        if (pollResp.status === 'error') {
+          console.warn('Strategy 4: STT poll returned error:', pollResp.error);
+          return null;
+        }
+
+        if (i > 0 && i % 6 === 0) {
+          window.dispatchEvent(
+            new CustomEvent('Grizzy-stt-progress', {
+              detail: {
+                message: `Still transcribing… (~${Math.round(((i + 1) * POLL_INTERVAL) / 60000)} min)`
+              }
+            })
+          );
+        }
+
+        if (i < MAX_POLLS - 1) {
+          await new Promise((r) => setTimeout(r, POLL_INTERVAL));
+        }
+      }
+
+      console.warn('Strategy 4: STT polling timed out after max attempts');
+      return null;
+    }
+
+    return null;
+  };
+
+  try {
+    let t = await runOnce(false);
+    if (t && t.length > 0) return t;
+
+    console.log('🎓 Grizzy: Retrying STT with force=true after timeout or empty result');
+    window.dispatchEvent(
+      new CustomEvent('Grizzy-stt-progress', {
+        detail: { message: 'Retrying audio transcription…' }
+      })
+    );
+    t = await runOnce(true);
+    return t && t.length > 0 ? t : null;
+  } catch (err) {
+    console.warn('Strategy 4 error:', err.message);
+    return null;
+  }
 }
 
 // ─── Shared Utilities ───────────────────────────────────────

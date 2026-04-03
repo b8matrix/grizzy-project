@@ -1,3 +1,6 @@
+# Windows: if `pip install -r requirements.txt` fails on openai-whisper (pkg_resources),
+# run: pip install setuptools wheel && pip install openai-whisper==20231117 --no-build-isolation
+setuptools>=65
 fastapi==0.115.0
 uvicorn[standard]==0.30.0
 python-multipart==0.0.9
@@ -7,3 +10,6 @@ google-generativeai==0.8.0
 python-dotenv==1.0.1
 aiosqlite==0.20.0
 openai-whisper==20231117
+yt-dlp
+youtube-transcript-api
+openai

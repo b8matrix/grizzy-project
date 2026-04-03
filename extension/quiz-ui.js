@@ -12,7 +12,7 @@ function createQuizPanel() {
   removeQuizPanel();
 
   _panelHost = document.createElement('div');
-  _panelHost.id = 'activelens-panel-host';
+  _panelHost.id = 'Grizzy-panel-host';
   
   // Full-Screen Click Blocker Layer (Pure CSS Approach)
   _panelHost.style.cssText = `
@@ -96,7 +96,7 @@ function renderLoading(message) {
   if (!panel) return;
   panel.innerHTML = `
     <div class="al-header">
-      <span class="al-logo">ActiveLens</span>
+      <span class="al-logo">Grizzy</span>
       <span class="al-badge">Loading</span>
     </div>
     <div class="al-body al-center">
@@ -111,7 +111,7 @@ function renderError(message) {
   if (!panel) return;
   panel.innerHTML = `
     <div class="al-header">
-      <span class="al-logo">ActiveLens</span>
+      <span class="al-logo">Grizzy</span>
       <button class="al-close-btn" id="al-close">✕</button>
     </div>
     <div class="al-body al-center">
@@ -137,6 +137,9 @@ function renderQuestion(state, onSubmit, onNext, onExit) {
       (totalSeg * totalQ)) * 100
   );
 
+  const diffRaw = state.difficulty || 'medium';
+  const diffLabel = { easy: 'Easy', medium: 'Medium', hard: 'Hard' }[diffRaw] || 'Medium';
+
   let inputHTML = '';
   if (q.type === 'mcq' && q.options) {
     inputHTML = q.options.map((opt, i) => {
@@ -148,12 +151,20 @@ function renderQuestion(state, onSubmit, onNext, onExit) {
     }).join('');
   } else {
     inputHTML = `<textarea class="al-textarea" id="al-answer-text"
-      placeholder="Type your answer here..." rows="3"></textarea>`;
+      placeholder="Type your answer here (pasting is disabled)..." rows="3" spellcheck="true"></textarea>`;
   }
+
+  const integrityRow =
+    q.type === 'mcq'
+      ? ''
+      : `<div class="al-integrity al-hidden" id="al-integrity-msg" role="status"></div>`;
 
   panel.innerHTML = `
     <div class="al-header">
-      <span class="al-logo">ActiveLens</span>
+      <div class="al-header-left">
+        <span class="al-logo">Grizzy</span>
+        <span class="al-diff-badge">${diffLabel}</span>
+      </div>
       <button class="al-close-btn" id="al-exit-x">✕</button>
     </div>
     <div class="al-progress-bar">
@@ -167,6 +178,7 @@ function renderQuestion(state, onSubmit, onNext, onExit) {
     <div class="al-body">
       <p class="al-question-text">${q.question}</p>
       <div class="al-options-area">${inputHTML}</div>
+      ${integrityRow}
       <div class="al-feedback al-hidden" id="al-feedback"></div>
       <button class="al-btn al-btn-primary" id="al-submit">Submit Answer</button>
       <button class="al-btn al-btn-success al-hidden" id="al-next">Next →</button>
@@ -176,18 +188,65 @@ function renderQuestion(state, onSubmit, onNext, onExit) {
     </div>
   `;
 
+  const ta = _shadow.getElementById('al-answer-text');
+  if (ta) {
+    const blockPaste = (e) => {
+      e.preventDefault();
+      const msg = _shadow.getElementById('al-integrity-msg');
+      if (msg) {
+        msg.textContent = 'Pasting is disabled. Type your answer in your own words.';
+        msg.classList.remove('al-hidden');
+      }
+    };
+    ta.addEventListener('paste', blockPaste);
+    ta.addEventListener('drop', blockPaste);
+  }
+
   // Bind events
-  _shadow.getElementById('al-submit').addEventListener('click', () => {
+  _shadow.getElementById('al-submit').addEventListener('click', async () => {
+    const submitBtn = _shadow.getElementById('al-submit');
+    const intMsg = _shadow.getElementById('al-integrity-msg');
+    if (intMsg) {
+      intMsg.classList.add('al-hidden');
+      intMsg.textContent = '';
+    }
+
     let answer = '';
     if (q.type === 'mcq') {
       const checked = _shadow.querySelector('input[name="al-answer"]:checked');
       if (!checked) return;
       answer = checked.value;
-    } else {
-      answer = (_shadow.getElementById('al-answer-text')?.value || '').trim();
-      if (!answer) return;
+      onSubmit(answer, q);
+      return;
     }
-    onSubmit(answer, q);
+
+    answer = (ta?.value || '').trim();
+    if (!answer) return;
+
+    submitBtn.disabled = true;
+    try {
+      const res = await chrome.runtime.sendMessage({ type: 'CHECK_AI_TEXT', text: answer });
+      if (!res.success) {
+        if (intMsg) {
+          intMsg.textContent =
+            res.error ||
+            'Could not verify your answer. Start the Grizzy backend (localhost) and try again.';
+          intMsg.classList.remove('al-hidden');
+        }
+        return;
+      }
+      if (typeof res.ai_likelihood_percent === 'number' && res.ai_likelihood_percent > 40) {
+        if (intMsg) {
+          intMsg.textContent =
+            'This answer looks machine-generated (over 40% AI-likelihood). Type your own explanation without using AI.';
+          intMsg.classList.remove('al-hidden');
+        }
+        return;
+      }
+      onSubmit(answer, q);
+    } finally {
+      submitBtn.disabled = false;
+    }
   });
 
   _shadow.getElementById('al-next').addEventListener('click', onNext);
@@ -228,7 +287,7 @@ function renderComplete(state, onExit) {
 
   panel.innerHTML = `
     <div class="al-header">
-      <span class="al-logo">ActiveLens</span>
+      <span class="al-logo">Grizzy</span>
     </div>
     <div class="al-progress-bar">
       <div class="al-progress-fill" style="width:100%"></div>
@@ -274,7 +333,12 @@ const PANEL_CSS = `
     padding: 14px 16px; border-bottom: 1px solid #2a2a2a;
     background: #161616;
   }
+  .al-header-left { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
   .al-logo { font-weight: 800; font-size: 16px; color: #4A90E2; }
+  .al-diff-badge {
+    font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em;
+    padding: 3px 8px; border-radius: 4px; background: #2a2a2a; color: #aaa; border: 1px solid #3a3a3a;
+  }
   .al-badge {
     font-size: 11px; padding: 3px 8px; border-radius: 4px;
     background: #4A90E2; color: white; font-weight: 600;
@@ -324,6 +388,10 @@ const PANEL_CSS = `
     resize: vertical; margin-bottom: 16px;
   }
   .al-textarea:focus { outline: none; border-color: #4A90E2; }
+  .al-integrity {
+    color: #e74c3c; font-size: 12px; line-height: 1.4; margin-bottom: 8px; padding: 8px 10px;
+    border-radius: 6px; background: rgba(231,76,60,0.08); border: 1px solid rgba(231,76,60,0.25);
+  }
   .al-feedback {
     padding: 12px; border-radius: 8px; margin-bottom: 14px;
     font-size: 13px; line-height: 1.5;

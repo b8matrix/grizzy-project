@@ -1,6 +1,6 @@
-# ActiveLens: Technical Implementation Plan
+# Grizzy: Technical Implementation Plan
 
-This document outlines the technical architecture and step-by-step roadmap for building the ActiveLens Chrome Extension and its backend intelligence layer for your hackathon.
+This document outlines the technical architecture and step-by-step roadmap for building the Grizzy Chrome Extension and its backend intelligence layer for your hackathon.
 
 ## Technical Architecture
 

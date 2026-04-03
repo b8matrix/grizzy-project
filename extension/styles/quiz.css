@@ -1,7 +1,7 @@
 /* quiz.css — Loaded on YouTube pages. Only styles the host element.
    All panel internals are styled via Shadow DOM in quiz-ui.js. */
 
-#activelens-panel-host {
+#Grizzy-panel-host {
   all: initial;
   position: fixed;
   top: 0;
@@ -12,6 +12,6 @@
   pointer-events: none;
 }
 
-#activelens-panel-host * {
+#Grizzy-panel-host * {
   pointer-events: auto;
 }

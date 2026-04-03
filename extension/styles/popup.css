@@ -11,6 +11,23 @@
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
+.settings-input {
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: #1a1a1a;
+  color: var(--text);
+  font-size: 12px;
+}
+
+.settings-input:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+
+a { color: var(--primary); }
+
 body {
   width: 320px;
   font-family: 'Segoe UI', 'Inter', Arial, sans-serif;
@@ -116,6 +133,12 @@ body {
 .btn.primary {
   background: var(--primary);
   color: white;
+}
+
+.btn.secondary {
+  background: #2a2a2a;
+  color: var(--text);
+  border: 1px solid var(--border);
 }
 
 .btn:hover { opacity: 0.85; }

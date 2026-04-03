@@ -2,7 +2,7 @@
 
 from fastapi import APIRouter, UploadFile, File, HTTPException
 from models.schemas import TranscriptionResponse
-from services.stt_engine import transcribe_audio
+from services.stt_engine import transcribe_audio_bytes as transcribe_audio
 
 router = APIRouter(prefix="/transcribe", tags=["Transcription"])
 

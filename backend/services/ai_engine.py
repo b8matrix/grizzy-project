@@ -14,15 +14,51 @@ client = AsyncOpenAI(
 )
 model_name = "llama-3.3-70b-versatile"
 
-async def call_ai(prompt: str) -> str:
-    """Send a prompt to OpenAI and return the text response."""
+async def call_ai(prompt: str, *, temperature: float = 0.3, max_tokens: int = 2048) -> str:
+    """Send a prompt to Groq and return the text response."""
     response = await client.chat.completions.create(
         model=model_name,
         messages=[{"role": "user", "content": prompt}],
-        temperature=0.3,
-        max_tokens=2048,
+        temperature=temperature,
+        max_tokens=max_tokens,
     )
     return response.choices[0].message.content
+
+
+async def score_ai_likelihood_percent(text: str) -> float:
+    """Estimate 0–100: how likely the prose is machine-generated vs human-typed."""
+    snippet = (text or "").strip()[:6000]
+    if not snippet:
+        return 0.0
+
+    prompt = f"""Estimate whether the following prose was likely written by a machine (LLM) versus a human.
+Signals for machine text: generic tone, perfectly balanced sentences, repetitive transitions, tutorial-list cadence, lack of typos.
+Signals for human text: uneven rhythm, casual phrasing, small imperfections, opinionated or fragmented wording.
+
+TEXT:
+\"\"\"
+{snippet}
+\"\"\"
+
+Return ONLY valid JSON, no markdown fences, one object:
+{{"ai_likelihood_percent": <number from 0 to 100>}}
+100 = almost certainly machine-generated; 0 = almost certainly human."""
+
+    raw = await call_ai(prompt, temperature=0.15, max_tokens=256)
+    cleaned = raw.strip()
+    if cleaned.startswith("```"):
+        cleaned = cleaned.split("\n", 1)[1] if "\n" in cleaned else cleaned[3:]
+    if cleaned.endswith("```"):
+        cleaned = cleaned[:-3]
+    cleaned = cleaned.strip()
+
+    try:
+        data = json.loads(cleaned)
+        if isinstance(data, dict) and "ai_likelihood_percent" in data:
+            return float(data["ai_likelihood_percent"])
+    except (json.JSONDecodeError, TypeError, ValueError):
+        pass
+    return 0.0
 
 
 async def extract_topics_from_syllabus(syllabus_text: str) -> list[str]:
@@ -80,7 +116,7 @@ If the video discusses something NOT in the syllabus, mention it but focus quest
 
     video_context = f'Video Title: "{video_title}"\n' if video_title else ""
 
-    prompt = f"""You are ActiveLens, a strict but fair university examiner.
+    prompt = f"""You are Grizzy, a strict but fair university examiner.
 
 Your job: Generate an assessment that forces the student to ACTIVELY LEARN from the video they just watched, anchored to their university syllabus.
 

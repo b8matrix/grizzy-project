@@ -1,4 +1,21 @@
 document.addEventListener('DOMContentLoaded', async () => {
+  const groqKeyInput = document.getElementById('groq-key');
+  const saveGroqBtn = document.getElementById('save-groq-key');
+  const groqKeyStatus = document.getElementById('groq-key-status');
+
+  chrome.storage.sync.get(['groqApiKey'], (res) => {
+    if (res.groqApiKey) groqKeyInput.value = res.groqApiKey;
+  });
+
+  saveGroqBtn.addEventListener('click', () => {
+    const key = groqKeyInput.value.trim();
+    chrome.storage.sync.set({ groqApiKey: key }, () => {
+      groqKeyStatus.textContent = key ? 'Saved.' : 'Cleared.';
+      groqKeyStatus.classList.remove('hidden');
+      setTimeout(() => groqKeyStatus.classList.add('hidden'), 2500);
+    });
+  });
+
   const loadingEl = document.getElementById('state-loading');
   const errorEl = document.getElementById('state-error');
   const readyEl = document.getElementById('state-ready');
@@ -44,23 +61,34 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Load saved question count
     const qCountInput = document.getElementById('question-count');
-    chrome.storage.local.get(['questionCount'], (res) => {
+    chrome.storage.local.get(['questionCount', 'quizDifficulty'], (res) => {
       if (res.questionCount) {
         qCountInput.value = res.questionCount;
       }
+      const d = res.quizDifficulty === 'easy' || res.quizDifficulty === 'hard' || res.quizDifficulty === 'medium'
+        ? res.quizDifficulty
+        : 'medium';
+      const diffInput = document.querySelector(`input[name="difficulty"][value="${d}"]`);
+      if (diffInput) diffInput.checked = true;
     });
 
     // Start button
     startBtn.addEventListener('click', async () => {
       const mode = document.querySelector('input[name="mode"]:checked').value;
-      
+      const difficulty = document.querySelector('input[name="difficulty"]:checked')?.value || 'medium';
+
       let qCount = parseInt(qCountInput.value, 10);
       if (isNaN(qCount) || qCount < 1) qCount = 1;
       if (qCount > 20) qCount = 20;
-      
-      chrome.storage.local.set({ questionCount: qCount });
 
-      await chrome.tabs.sendMessage(tab.id, { type: 'START_TEST', mode, questionCount: qCount });
+      chrome.storage.local.set({ questionCount: qCount, quizDifficulty: difficulty });
+
+      await chrome.tabs.sendMessage(tab.id, {
+        type: 'START_TEST',
+        mode,
+        questionCount: qCount,
+        difficulty
+      });
       window.close();
     });
 

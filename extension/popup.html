@@ -2,15 +2,23 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>ActiveLens</title>
+  <title>Grizzy</title>
   <link rel="stylesheet" href="styles/popup.css">
 </head>
 <body>
   <div class="container">
 
     <div class="header">
-      <h1>ActiveLens</h1>
+      <h1>Grizzy</h1>
       <p class="tagline">Practice tests from any video</p>
+    </div>
+
+    <div class="card" id="settings-card">
+      <h2>Settings</h2>
+      <p class="mode-desc" style="margin-bottom:8px;">Groq API key (quiz generation). Get one at <a href="https://console.groq.com/keys" target="_blank" rel="noopener">console.groq.com</a>.</p>
+      <input type="password" id="groq-key" class="settings-input" placeholder="gsk_…" autocomplete="off" spellcheck="false">
+      <button type="button" id="save-groq-key" class="btn secondary" style="margin-top:8px;width:100%;">Save key</button>
+      <p id="groq-key-status" class="muted hidden" style="margin-top:8px;font-size:11px;"></p>
     </div>
 
     <!-- Loading state -->
@@ -53,6 +61,31 @@
         <p id="no-chapters-msg" class="muted hidden" style="margin-top:8px;font-size:11px;">
           ℹ️ No chapters detected. Using interval mode.
         </p>
+      </div>
+
+      <div class="card" style="margin-top: 12px; margin-bottom: 12px;">
+        <h2>Difficulty</h2>
+        <label class="mode-option" style="margin-top: 8px;">
+          <input type="radio" name="difficulty" value="easy" id="diff-easy">
+          <div>
+            <strong>Easy</strong>
+            <p class="mode-desc">Recall terms and direct facts from what was said</p>
+          </div>
+        </label>
+        <label class="mode-option">
+          <input type="radio" name="difficulty" value="medium" id="diff-medium" checked>
+          <div>
+            <strong>Medium</strong>
+            <p class="mode-desc">Understanding, comparisons, and “why” from the transcript</p>
+          </div>
+        </label>
+        <label class="mode-option">
+          <input type="radio" name="difficulty" value="hard" id="diff-hard">
+          <div>
+            <strong>Hard</strong>
+            <p class="mode-desc">Tighter reasoning, implications, and subtle distinctions</p>
+          </div>
+        </label>
       </div>
 
       <div class="card" style="margin-top: 12px; margin-bottom: 12px;">

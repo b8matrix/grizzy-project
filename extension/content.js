@@ -1,5 +1,5 @@
 /**
- * content.js — ActiveLens Main Orchestrator
+ * content.js — Grizzy Main Orchestrator
  * Coordinates transcript extraction, quiz generation, and UI rendering.
  * Loaded after transcript.js and quiz-ui.js.
  */
@@ -7,10 +7,10 @@
 let alState = null;
 
 // ── Initialization ──────────────────────────────────
-function initActiveLens() {
+function initGrizzy() {
   const videoId = getVideoId();
   if (!videoId) return;
-  console.log('🎓 ActiveLens: Ready on video', videoId);
+  console.log('🎓 Grizzy: Ready on video', videoId);
   tryResumeState(videoId);
 }
 
@@ -18,11 +18,11 @@ function initActiveLens() {
 document.addEventListener('yt-navigate-finish', () => {
   alState = null;
   removeQuizPanel();
-  initActiveLens();
+  initGrizzy();
 });
 
 // First load
-if (getVideoId()) initActiveLens();
+if (getVideoId()) initGrizzy();
 
 // ── Message handler (from popup) ────────────────────
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
@@ -41,24 +41,47 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   }
 
   if (msg.type === 'START_TEST') {
-    startTest(msg.mode, msg.questionCount || 5);
+    startTest(msg.mode, msg.questionCount || 5, msg.difficulty);
     sendResponse({ started: true });
     return;
   }
 });
 
+function normalizeDifficulty(d) {
+  const x = String(d || 'medium').toLowerCase();
+  if (x === 'easy' || x === 'hard' || x === 'medium') return x;
+  return 'medium';
+}
+
 // ── Core test flow ──────────────────────────────────
-async function startTest(mode, questionCount) {
+async function startTest(mode, questionCount, difficulty) {
   const videoId = getVideoId();
   if (!videoId) return;
+  const quizDifficulty = normalizeDifficulty(difficulty);
 
   createQuizPanel();
   renderLoading('Extracting transcript...');
 
-  // 1. Extract transcript
+  // Listen for STT progress updates from transcript.js
+  const sttProgressHandler = (e) => {
+    if (e.detail && e.detail.message) {
+      renderLoading(e.detail.message);
+    }
+  };
+  window.addEventListener('Grizzy-stt-progress', sttProgressHandler);
+
+  // 1. Extract transcript (includes Strategy 4 STT fallback automatically)
   const transcript = await extractTranscript(videoId);
+  
+  // Cleanup STT listener
+  window.removeEventListener('Grizzy-stt-progress', sttProgressHandler);
+  
   if (!transcript || transcript.length === 0) {
-    renderError('No transcript available for this video. Please try a video with captions enabled.');
+    renderError(
+      'No transcript available for this video. Captions were not found, and audio transcription (Whisper) did not return text. ' +
+        'Run the Grizzy backend on this PC (same port as in the extension), install ffmpeg and yt-dlp on the server, ' +
+        'set GROQ_API_KEY in backend/.env, then reload this page and try again. Long videos may take several minutes to transcribe.'
+    );
     return;
   }
 
@@ -84,7 +107,14 @@ async function startTest(mode, questionCount) {
   // 3. Generate questions for first segment
   renderLoading('Generating questions with AI...');
   const sessionSeed = Math.random().toString(36).substring(7);
-  const firstQuestions = await requestQuestions(videoId, 0, segments[0], sessionSeed, questionCount);
+  const firstQuestions = await requestQuestions(
+    videoId,
+    0,
+    segments[0],
+    sessionSeed,
+    questionCount,
+    quizDifficulty
+  );
   if (!firstQuestions) return; // error already rendered
   segments[0].questions = firstQuestions;
 
@@ -93,6 +123,7 @@ async function startTest(mode, questionCount) {
     videoId,
     mode,
     questionCount,
+    difficulty: quizDifficulty,
     status: 'active',
     sessionSeed,
     segments,
@@ -136,11 +167,18 @@ function deduplicateQuestions(newQuestions) {
   return unique.length > 0 ? unique : newQuestions.slice(0, 1);
 }
 
-async function requestQuestions(videoId, segIdx, segment, seed = null, count = 5) {
+async function requestQuestions(videoId, segIdx, segment, seed = null, count = 5, difficultyOverride) {
   try {
     const currentSeed = seed || (alState ? alState.sessionSeed : Math.random().toString(36).substring(7));
     const currentCount = alState ? alState.questionCount : count;
-    
+
+    const diff =
+      difficultyOverride !== undefined && difficultyOverride !== null
+        ? normalizeDifficulty(difficultyOverride)
+        : alState
+          ? normalizeDifficulty(alState.difficulty)
+          : 'medium';
+
     const resp = await chrome.runtime.sendMessage({
       type: 'GENERATE_QUESTIONS',
       data: {
@@ -149,7 +187,8 @@ async function requestQuestions(videoId, segIdx, segment, seed = null, count = 5
         text: segment.text,
         title: segment.title,
         seed: currentSeed,
-        count: currentCount
+        count: currentCount,
+        difficulty: diff
       }
     });
     if (resp.success) return deduplicateQuestions(resp.questions);
@@ -238,17 +277,17 @@ function handleExit() {
 // ── State persistence ───────────────────────────────
 async function saveState() {
   if (!alState) return;
-  await chrome.storage.local.set({ activelens_state: alState });
+  await chrome.storage.local.set({ Grizzy_state: alState });
 }
 
 async function clearState() {
   alState = null;
-  await chrome.storage.local.remove('activelens_state');
+  await chrome.storage.local.remove('Grizzy_state');
 }
 
 async function tryResumeState(videoId) {
-  const data = await chrome.storage.local.get('activelens_state');
-  const saved = data.activelens_state;
+  const data = await chrome.storage.local.get('Grizzy_state');
+  const saved = data.Grizzy_state;
   if (saved && saved.videoId === videoId && saved.status === 'active') {
     alState = saved;
     createQuizPanel();
