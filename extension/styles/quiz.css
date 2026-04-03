@@ -1,0 +1,17 @@
+/* quiz.css — Loaded on YouTube pages. Only styles the host element.
+   All panel internals are styled via Shadow DOM in quiz-ui.js. */
+
+#activelens-panel-host {
+  all: initial;
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 0;
+  height: 0;
+  z-index: 2147483647;
+  pointer-events: none;
+}
+
+#activelens-panel-host * {
+  pointer-events: auto;
+}
