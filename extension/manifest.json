@@ -1,0 +1,27 @@
+{
+  "manifest_version": 3,
+  "name": "ActiveLens",
+  "version": "2.0.0",
+  "description": "Generate interactive practice tests from any YouTube video.",
+  "permissions": ["activeTab", "scripting", "storage"],
+  "host_permissions": [
+    "https://www.youtube.com/*",
+    "https://generativelanguage.googleapis.com/*",
+    "http://localhost:8000/*"
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "ActiveLens"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://www.youtube.com/*"],
+      "js": ["transcript.js", "quiz-ui.js", "content.js"],
+      "css": ["styles/quiz.css"],
+      "run_at": "document_idle"
+    }
+  ]
+}
