@@ -1,7 +1,7 @@
 """
-ActiveLens Backend — FastAPI Entry Point
+Grizzy Backend — FastAPI Entry Point
 =========================================
-The intelligence engine that powers the ActiveLens Chrome extension.
+The intelligence engine that powers the Grizzy Chrome extension.
 
 Endpoints:
   POST /syllabus/upload        — Upload a university syllabus PDF
@@ -18,7 +18,7 @@ from routers import syllabus, assessment, transcribe, transcript_fetch, stt_fall
 
 # ── Initialize App ──
 app = FastAPI(
-    title="ActiveLens API",
+    title="Grizzy API",
     description="Turning the entire internet into a mandatory, high-retention classroom.",
     version="1.0.0",
 )
@@ -45,7 +45,7 @@ app.include_router(stt_fallback.router)
 def on_startup():
     """Initialize the SQLite database on server start."""
     init_db()
-    print("\n🎓 ActiveLens Backend is LIVE!")
+    print("\n🎓 Grizzy Backend is LIVE!")
     print("   Docs: http://localhost:8000/docs")
     print("   Ready to turn passive watching into active learning.\n")
 
@@ -55,7 +55,7 @@ def on_startup():
 async def root():
     return {
         "status": "active",
-        "project": "ActiveLens",
+        "project": "Grizzy",
         "tagline": "Turning the entire internet into a mandatory, high-retention classroom.",
         "endpoints": {
             "upload_syllabus": "POST /syllabus/upload",

@@ -12,7 +12,7 @@ function createQuizPanel() {
   removeQuizPanel();
 
   _panelHost = document.createElement('div');
-  _panelHost.id = 'activelens-panel-host';
+  _panelHost.id = 'grizzy-panel-host';
   
   // Full-Screen Click Blocker Layer (Pure CSS Approach)
   _panelHost.style.cssText = `
@@ -96,7 +96,7 @@ function renderLoading(message) {
   if (!panel) return;
   panel.innerHTML = `
     <div class="al-header">
-      <span class="al-logo">ActiveLens</span>
+      <span class="al-logo">Grizzy</span>
       <span class="al-badge">Loading</span>
     </div>
     <div class="al-body al-center">
@@ -111,7 +111,7 @@ function renderError(message) {
   if (!panel) return;
   panel.innerHTML = `
     <div class="al-header">
-      <span class="al-logo">ActiveLens</span>
+      <span class="al-logo">Grizzy</span>
       <button class="al-close-btn" id="al-close">✕</button>
     </div>
     <div class="al-body al-center">
@@ -153,7 +153,7 @@ function renderQuestion(state, onSubmit, onNext, onExit) {
 
   panel.innerHTML = `
     <div class="al-header">
-      <span class="al-logo">ActiveLens</span>
+      <span class="al-logo">Grizzy</span>
       <button class="al-close-btn" id="al-exit-x">✕</button>
     </div>
     <div class="al-progress-bar">
@@ -228,7 +228,7 @@ function renderComplete(state, onExit) {
 
   panel.innerHTML = `
     <div class="al-header">
-      <span class="al-logo">ActiveLens</span>
+      <span class="al-logo">Grizzy</span>
     </div>
     <div class="al-progress-bar">
       <div class="al-progress-fill" style="width:100%"></div>

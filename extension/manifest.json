@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "ActiveLens",
+  "name": "Grizzy",
   "version": "2.0.0",
   "description": "Generate interactive practice tests from any YouTube video.",
   "permissions": ["activeTab", "scripting", "storage"],
@@ -11,7 +11,7 @@
   ],
   "action": {
     "default_popup": "popup.html",
-    "default_title": "ActiveLens"
+    "default_title": "Grizzy"
   },
   "background": {
     "service_worker": "background.js"

@@ -1,13 +1,13 @@
-# 🌟 ActiveLens: Detailed Project & Architecture Summary
+# 🌟 Grizzy: Detailed Project & Architecture Summary
 
 ## 📖 Executive Summary
-ActiveLens is a sophisticated, non-intrusive Chrome Extension that augments the YouTube learning experience by overlaying context-aware, multiple-choice quizzes directly onto the video player. By combining edge-computing in the browser with powerful asynchronous backend fallbacks, the system guarantees 100% video coverage. ActiveLens automatically scrapes or transcribes the video payload, passes it through an ultra-fast Large Language Model (Groq LLaMA-3.3-70B), and tests the user's comprehension of the content completely dynamically.
+Grizzy is a sophisticated, non-intrusive Chrome Extension that augments the YouTube learning experience by overlaying context-aware, multiple-choice quizzes directly onto the video player. By combining edge-computing in the browser with powerful asynchronous backend fallbacks, the system guarantees 100% video coverage. Grizzy automatically scrapes or transcribes the video payload, passes it through an ultra-fast Large Language Model (Groq LLaMA-3.3-70B), and tests the user's comprehension of the content completely dynamically.
 
 ---
 
 ## 🎯 Core Features & Flow
 1. **Zero-Friction Trigger:** The user simply clicks the extension icon while watching any YouTube video.
-2. **Context Aggregation:** ActiveLens invisibly strips the transcript/closed captions from the video.
+2. **Context Aggregation:** Grizzy invisibly strips the transcript/closed captions from the video.
 3. **AI Generation:** An advanced Large Language Model analyzes the text, parsing out analogies and focusing solely on core principles to build an educational quiz.
 4. **Interactive UI:** A highly polished "Glassmorphic" UI renders inside the YouTube player, allowing users to answer multiple-choice questions with immediate grading and explanations.
 5. **Caching:** Previously generated quizzes are aggressively cached via Chrome's Local Storage so returning to a video loads instantly and saves API bandwidth.
@@ -17,7 +17,7 @@ ActiveLens is a sophisticated, non-intrusive Chrome Extension that augments the 
 ## 🏗️ Technical Implementation Breakdown
 
 ### 1. The Frontend Overlays (`content.js` & `quiz-ui.js`)
-Rather than relying on popups, ActiveLens injects itself as a living DOM application directly above the YouTube HTML5 player. 
+Rather than relying on popups, Grizzy injects itself as a living DOM application directly above the YouTube HTML5 player. 
 * Uses **Vanilla JS** combined with deep DOM selector logic (`ytd-app`, `ytd-player`) to anchor the overlay seamlessly.
 * Manages the "State" of the user's progress through the quiz, tracking metrics like correct answers and the current video segment.
 
@@ -28,7 +28,7 @@ Operating entirely in the background, this script isolates heavy computational/n
 * **Strict RegEx Policing:** Features a custom `safeParse()` engine. LLMs notoriously append trailing characters or markdown (e.g., ````json`). The parser ensures that the raw payload is safely scraped, filtered, and transformed into an exact array of Question JSON objects, preventing rendering crashes.
 
 ### 3. The Extraction Engine (`transcript.js`)
-YouTube fights against bot scraping aggressively. ActiveLens mitigates this via a cascading fallback strategy:
+YouTube fights against bot scraping aggressively. Grizzy mitigates this via a cascading fallback strategy:
 * **Strategy A (The API):** Pulls silently from YouTube's internal `timedtext` API to grab the closed captions directly.
 * **Strategy B (The Failsafe):** If YouTube blocks the request (e.g., age restriction, CORS, explicit blocking), the extension bridges to a **Python FastAPI Backend**, which utilizes the `youtube-transcript-api` to bypass browser-level blocks.
 
@@ -46,4 +46,4 @@ What if the video has absolutely no subtitles or is independently uploaded? This
 * **Stateless API:** The extension relies solely on deterministic outputs instead of maintaining vulnerable global variables.
 * **Rate Limit Protection:** Features hard stops and fail-safes. If the Groq API fails or limits traffic, the UI gracefully renders a single dummy question (e.g., `"API limit reached. Try reloading."`) instead of completely breaking the extension state.
 
-ActiveLens successfully turns passive consumption into focused, engaged micro-learning without leaving the platform.
+Grizzy successfully turns passive consumption into focused, engaged micro-learning without leaving the platform.

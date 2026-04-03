@@ -201,7 +201,7 @@ async function fetchTranscriptSTT(videoId) {
     if (triggerResp.status === 'error') return null;
 
     if (triggerResp.status === 'processing') {
-      window.dispatchEvent(new CustomEvent('activelens-stt-progress', {
+      window.dispatchEvent(new CustomEvent('grizzy-stt-progress', {
         detail: { message: 'Generating transcript from audio (this may take a few minutes)...' }
       }));
       for (let i = 0; i < MAX_POLLS; i++) {

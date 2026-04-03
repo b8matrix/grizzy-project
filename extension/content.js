@@ -1,5 +1,5 @@
 /**
- * content.js — ActiveLens Main Orchestrator
+ * content.js — Grizzy Main Orchestrator
  * Coordinates transcript extraction, quiz generation, and UI rendering.
  * Loaded after transcript.js and quiz-ui.js.
  */
@@ -7,10 +7,10 @@
 let alState = null;
 
 // ── Initialization ──────────────────────────────────
-function initActiveLens() {
+function initGrizzy() {
   const videoId = getVideoId();
   if (!videoId) return;
-  console.log('🎓 ActiveLens: Ready on video', videoId);
+  console.log('🎓 Grizzy: Ready on video', videoId);
   tryResumeState(videoId);
 }
 
@@ -18,11 +18,11 @@ function initActiveLens() {
 document.addEventListener('yt-navigate-finish', () => {
   alState = null;
   removeQuizPanel();
-  initActiveLens();
+  initGrizzy();
 });
 
 // First load
-if (getVideoId()) initActiveLens();
+if (getVideoId()) initGrizzy();
 
 // ── Message handler (from popup) ────────────────────
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
@@ -61,13 +61,13 @@ async function startTest(mode, questionCount) {
       renderLoading(e.detail.message);
     }
   };
-  window.addEventListener('activelens-stt-progress', sttProgressHandler);
+  window.addEventListener('grizzy-stt-progress', sttProgressHandler);
 
   // 1. Extract transcript
   const transcript = await extractTranscript(videoId);
   
   // Cleanup STT listener
-  window.removeEventListener('activelens-stt-progress', sttProgressHandler);
+  window.removeEventListener('grizzy-stt-progress', sttProgressHandler);
   
   if (!transcript || transcript.length === 0) {
     renderError('Unable to generate transcript for this video. No captions available and audio transcription failed.');
@@ -226,17 +226,17 @@ function handleExit() {
 // ── State persistence ───────────────────────────────
 async function saveState() {
   if (!alState) return;
-  await chrome.storage.local.set({ activelens_state: alState });
+  await chrome.storage.local.set({ grizzy_state: alState });
 }
 
 async function clearState() {
   alState = null;
-  await chrome.storage.local.remove('activelens_state');
+  await chrome.storage.local.remove('grizzy_state');
 }
 
 async function tryResumeState(videoId) {
-  const data = await chrome.storage.local.get('activelens_state');
-  const saved = data.activelens_state;
+  const data = await chrome.storage.local.get('grizzy_state');
+  const saved = data.grizzy_state;
   if (saved && saved.videoId === videoId && saved.status === 'active') {
     alState = saved;
     createQuizPanel();

@@ -1,6 +1,6 @@
-# 🎓 ActiveLens
+# 🎓 Grizzy
 
-ActiveLens is a powerful Google Chrome Extension that transforms any YouTube video into an interactive learning experience. It dynamically extracts transcripts, processes them through an ultra-fast LLaMA-3.3 Large Language Model (via Groq), and overlays context-aware, multiple-choice quizzes directly onto the video player.
+Grizzy is a powerful Google Chrome Extension that transforms any YouTube video into an interactive learning experience. It dynamically extracts transcripts, processes them through an ultra-fast LLaMA-3.3 Large Language Model (via Groq), and overlays context-aware, multiple-choice quizzes directly onto the video player.
 
 ---
 
@@ -11,7 +11,7 @@ The architecture is split into a lightweight Client-Side **Chrome Extension** an
 ```mermaid
 flowchart TD
     %% Define Nodes
-    User([User clicks ActiveLens])
+    User([User clicks Grizzy])
     ContentJS[content.js <br> UI Injection & Orchestration]
     BackgroundJS[background.js <br> Service Worker & Cache]
     Groq[Groq API <br> LLaMA-3.3-70B]
@@ -102,4 +102,4 @@ python -m uvicorn main:app --reload --port 8000
 1. Open Chrome and navigate to `chrome://extensions/`
 2. Enable **Developer Mode** in the top right.
 3. Click **Load unpacked** and select the `extension` folder in this repository.
-4. Open any YouTube video and click the ActiveLens icon!
+4. Open any YouTube video and click the Grizzy icon!

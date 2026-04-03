@@ -1,5 +1,5 @@
 /**
- * background.js — ActiveLens Service Worker
+ * background.js — Grizzy Service Worker
  * MINIMAL BASELINE PIPELINE: Transcript → LLM → Questions
  */
 
