@@ -1,0 +1,304 @@
+<mxfile host="app.diagrams.net" agent="5.0" version="26.0.0">
+  <diagram name="ActiveLens System Architecture" id="activelens-arch">
+    <mxGraphModel dx="1900" dy="1100" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="1800" pageHeight="1200" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <mxCell id="title" value="ActiveLens — Complete System Architecture" style="text;html=1;fontSize=22;fontStyle=1;align=center;verticalAlign=middle;fillColor=none;strokeColor=none;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="350" y="-30" width="700" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="subtitle" value="Chrome Extension + FastAPI Backend + AI Pipeline" style="text;html=1;fontSize=13;fontStyle=2;align=center;verticalAlign=middle;fillColor=none;strokeColor=none;fontColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="450" y="15" width="500" height="30" as="geometry" />
+        </mxCell>
+
+        <mxCell id="user_lane" value="👤 User Layer" style="swimlane;startSize=30;fillColor=#f8cecc;strokeColor=#b85450;fontStyle=1;fontSize=13;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="20" y="60" width="260" height="950" as="geometry" />
+        </mxCell>
+        <mxCell id="user_icon" value="Student / Learner" style="shape=mxgraph.basic.smiley;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="user_lane">
+          <mxGeometry x="80" y="50" width="80" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="user_action1" value="1. Opens YouTube Video" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontStyle=0;fontSize=11;" vertex="1" parent="user_lane">
+          <mxGeometry x="30" y="160" width="200" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="user_action2" value="2. Clicks ActiveLens&#xa;Extension Icon" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontStyle=0;fontSize=11;" vertex="1" parent="user_lane">
+          <mxGeometry x="30" y="230" width="200" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="user_action3" value="3. Selects Mode &amp;&#xa;Question Count (1-20)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontStyle=0;fontSize=11;" vertex="1" parent="user_lane">
+          <mxGeometry x="30" y="305" width="200" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="user_action4" value="4. Answers Quiz Questions&#xa;(MCQ / Short Answer)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontStyle=0;fontSize=11;" vertex="1" parent="user_lane">
+          <mxGeometry x="30" y="520" width="200" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="user_action5" value="5. Reviews Score &amp;&#xa;Explanations" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontStyle=0;fontSize=11;" vertex="1" parent="user_lane">
+          <mxGeometry x="30" y="600" width="200" height="45" as="geometry" />
+        </mxCell>
+
+        <mxCell id="eu1" style="edgeStyle=orthogonalEdgeStyle;rounded=1;" edge="1" parent="user_lane" source="user_icon" target="user_action1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="eu2" style="edgeStyle=orthogonalEdgeStyle;rounded=1;" edge="1" parent="user_lane" source="user_action1" target="user_action2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="eu3" style="edgeStyle=orthogonalEdgeStyle;rounded=1;" edge="1" parent="user_lane" source="user_action2" target="user_action3">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="ext_lane" value="🌐 Chrome Extension (Manifest V3)" style="swimlane;startSize=30;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;fontSize=13;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="310" y="60" width="420" height="950" as="geometry" />
+        </mxCell>
+
+        <mxCell id="popup" value="Popup UI&#xa;(popup.html + popup.js)&#xa;• Mode selector (Chapters / 10min)&#xa;• Question count input (1-20)&#xa;• Start Test button" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=10;align=left;spacingLeft=10;" vertex="1" parent="ext_lane">
+          <mxGeometry x="30" y="50" width="360" height="80" as="geometry" />
+        </mxCell>
+
+        <mxCell id="content_script" value="Content Script (content.js)&#xa;• Orchestrates entire test flow&#xa;• State management &amp; persistence&#xa;• Answer evaluation (MCQ + keyword)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=10;align=left;spacingLeft=10;" vertex="1" parent="ext_lane">
+          <mxGeometry x="30" y="170" width="360" height="80" as="geometry" />
+        </mxCell>
+
+        <mxCell id="transcript_js" value="Transcript Engine (transcript.js)&#xa;4-Strategy Fallback Chain:" style="swimlane;startSize=40;fillColor=#f5f5f5;strokeColor=#666666;fontStyle=1;fontSize=10;rounded=1;fontColor=#333333;" vertex="1" parent="ext_lane">
+          <mxGeometry x="30" y="290" width="360" height="220" as="geometry" />
+        </mxCell>
+        <mxCell id="strat1" value="Strategy 1: YouTube Timedtext API" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=10;" vertex="1" parent="transcript_js">
+          <mxGeometry x="15" y="50" width="155" height="35" as="geometry" />
+        </mxCell>
+        <mxCell id="strat2" value="Strategy 2: ytInitialPlayerResponse" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=10;" vertex="1" parent="transcript_js">
+          <mxGeometry x="190" y="50" width="155" height="35" as="geometry" />
+        </mxCell>
+        <mxCell id="strat3" value="Strategy 3: Backend API&#xa;(youtube-transcript-api)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=10;" vertex="1" parent="transcript_js">
+          <mxGeometry x="15" y="100" width="155" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="strat4" value="Strategy 4: STT Fallback&#xa;(Whisper + yt-dlp)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=10;" vertex="1" parent="transcript_js">
+          <mxGeometry x="190" y="100" width="155" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="strat_result" value="Output: [{start, end, text}] → Cache" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=10;fontStyle=2;" vertex="1" parent="transcript_js">
+          <mxGeometry x="60" y="168" width="240" height="35" as="geometry" />
+        </mxCell>
+        <mxCell id="es1" style="rounded=1;dashed=1;fontSize=9;" edge="1" parent="transcript_js" source="strat1" target="strat2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="es2" style="rounded=1;dashed=1;fontSize=9;" edge="1" parent="transcript_js" source="strat2" target="strat3">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="es3" style="rounded=1;dashed=1;fontSize=9;" edge="1" parent="transcript_js" source="strat3" target="strat4">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="quiz_ui" value="Quiz UI (quiz-ui.js)&#xa;• Shadow DOM isolation&#xa;• Keyboard interception (capture phase)&#xa;• pointer-events CSS blocking&#xa;• MCQ + Short Answer rendering" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=10;align=left;spacingLeft=10;" vertex="1" parent="ext_lane">
+          <mxGeometry x="30" y="550" width="360" height="90" as="geometry" />
+        </mxCell>
+
+        <mxCell id="bg_worker" value="Background Service Worker (background.js)&#xa;• Groq API calls (Llama-3.3-70B)&#xa;• Question quality filter (visual keywords)&#xa;• Retry loop with accumulation&#xa;• STT trigger &amp; poll proxy&#xa;• Quiz cache management" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=10;align=left;spacingLeft=10;" vertex="1" parent="ext_lane">
+          <mxGeometry x="30" y="680" width="360" height="100" as="geometry" />
+        </mxCell>
+
+        <mxCell id="chrome_storage" value="chrome.storage.local" style="shape=cylinder3;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=10;" vertex="1" parent="ext_lane">
+          <mxGeometry x="140" y="830" width="140" height="70" as="geometry" />
+        </mxCell>
+
+        <mxCell id="ep1" style="edgeStyle=orthogonalEdgeStyle;rounded=1;" edge="1" parent="ext_lane" source="popup" target="content_script">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ep2" style="edgeStyle=orthogonalEdgeStyle;rounded=1;" edge="1" parent="ext_lane" source="content_script" target="transcript_js">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ep3" style="edgeStyle=orthogonalEdgeStyle;rounded=1;" edge="1" parent="ext_lane" source="content_script" target="quiz_ui">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ep5" style="edgeStyle=orthogonalEdgeStyle;rounded=1;" edge="1" parent="ext_lane" source="bg_worker" target="chrome_storage">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="backend_lane" value="⚙️ Backend Server (FastAPI + Python)" style="swimlane;startSize=30;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1;fontSize=13;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="770" y="60" width="400" height="950" as="geometry" />
+        </mxCell>
+
+        <mxCell id="api_gw" value="FastAPI Gateway (main.py)&#xa;CORS enabled for chrome-extension://*&#xa;Hot-reload via uvicorn" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=10;align=left;spacingLeft=10;fontStyle=0;" vertex="1" parent="backend_lane">
+          <mxGeometry x="30" y="50" width="340" height="60" as="geometry" />
+        </mxCell>
+
+        <mxCell id="routers_grp" value="API Routers" style="swimlane;startSize=30;fillColor=#f5f5f5;strokeColor=#666666;fontStyle=1;fontSize=10;rounded=1;fontColor=#333333;" vertex="1" parent="backend_lane">
+          <mxGeometry x="30" y="140" width="340" height="200" as="geometry" />
+        </mxCell>
+        <mxCell id="r_transcript" value="POST /get-transcript&#xa;(transcript_fetch.py)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=9;" vertex="1" parent="routers_grp">
+          <mxGeometry x="15" y="40" width="145" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="r_stt_gen" value="POST /generate-transcript&#xa;(stt_fallback.py)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=9;" vertex="1" parent="routers_grp">
+          <mxGeometry x="180" y="40" width="145" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="r_stt_poll" value="GET /transcript-status&#xa;(stt_fallback.py)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=9;" vertex="1" parent="routers_grp">
+          <mxGeometry x="180" y="100" width="145" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="r_syllabus" value="POST /syllabus/upload&#xa;GET /syllabus/{id}&#xa;(syllabus.py)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=9;" vertex="1" parent="routers_grp">
+          <mxGeometry x="15" y="100" width="145" height="55" as="geometry" />
+        </mxCell>
+
+        <mxCell id="services_grp" value="Services Layer" style="swimlane;startSize=30;fillColor=#f5f5f5;strokeColor=#666666;fontStyle=1;fontSize=10;rounded=1;fontColor=#333333;" vertex="1" parent="backend_lane">
+          <mxGeometry x="30" y="380" width="340" height="240" as="geometry" />
+        </mxCell>
+        <mxCell id="stt_svc" value="STT Engine (stt_engine.py)&#xa;• download_audio() via yt-dlp&#xa;• transcribe_audio_file() via Whisper&#xa;• Lazy model loading (singleton)&#xa;• Temp file cleanup" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=9;align=left;spacingLeft=8;" vertex="1" parent="services_grp">
+          <mxGeometry x="15" y="40" width="310" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="ai_svc" value="AI Engine (ai_engine.py)&#xa;RAG-based assessment evaluation" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=9;align=left;spacingLeft=8;" vertex="1" parent="services_grp">
+          <mxGeometry x="15" y="140" width="145" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="pdf_svc" value="PDF Parser&#xa;(pdf_parser.py)&#xa;PyPDF2 extraction" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=9;align=left;spacingLeft=8;" vertex="1" parent="services_grp">
+          <mxGeometry x="180" y="140" width="145" height="55" as="geometry" />
+        </mxCell>
+
+        <mxCell id="sqlite" value="SQLite (activelens.db)" style="shape=cylinder3;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=10;" vertex="1" parent="backend_lane">
+          <mxGeometry x="30" y="660" width="150" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="db_tables" value="Tables:&#xa;• syllabi&#xa;• assessment_cache&#xa;• stt_transcripts&#xa;• student_progress" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=9;align=left;spacingLeft=8;fontColor=#333333;" vertex="1" parent="backend_lane">
+          <mxGeometry x="210" y="655" width="150" height="80" as="geometry" />
+        </mxCell>
+
+        <mxCell id="eb1" style="edgeStyle=orthogonalEdgeStyle;rounded=1;" edge="1" parent="backend_lane" source="api_gw" target="routers_grp">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="eb2" style="edgeStyle=orthogonalEdgeStyle;rounded=1;" edge="1" parent="backend_lane" source="routers_grp" target="services_grp">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="eb3" style="edgeStyle=orthogonalEdgeStyle;rounded=1;" edge="1" parent="backend_lane" source="services_grp" target="sqlite">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="eb4" style="edgeStyle=orthogonalEdgeStyle;rounded=1;dashed=1;" edge="1" parent="backend_lane" source="sqlite" target="db_tables">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="external_lane" value="☁️ External Services" style="swimlane;startSize=30;fillColor=#ffe6cc;strokeColor=#d79b00;fontStyle=1;fontSize=13;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="1210" y="60" width="240" height="950" as="geometry" />
+        </mxCell>
+        <mxCell id="yt_servers" value="YouTube Servers&#xa;• Timedtext API&#xa;• Video pages&#xa;• Audio streams" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=10;align=left;spacingLeft=8;" vertex="1" parent="external_lane">
+          <mxGeometry x="30" y="80" width="180" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="groq_api" value="Groq Cloud API&#xa;Model: Llama-3.3-70B&#xa;• Quiz generation&#xa;• Strict JSON output" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=10;align=left;spacingLeft=8;" vertex="1" parent="external_lane">
+          <mxGeometry x="30" y="250" width="180" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="whisper_model" value="OpenAI Whisper&#xa;Model: base&#xa;• Local inference&#xa;• CPU-safe (fp16=false)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=10;align=left;spacingLeft=8;" vertex="1" parent="external_lane">
+          <mxGeometry x="30" y="430" width="180" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="ytdlp_tool" value="yt-dlp&#xa;• Audio extraction&#xa;• WAV conversion" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=10;align=left;spacingLeft=8;" vertex="1" parent="external_lane">
+          <mxGeometry x="30" y="580" width="180" height="70" as="geometry" />
+        </mxCell>
+
+        <mxCell id="cross1" value="chrome.runtime&#xa;.sendMessage" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#6c8ebf;fontColor=#6c8ebf;fontSize=9;" edge="1" parent="1" source="content_script" target="bg_worker">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="380" y="530" />
+              <mxPoint x="380" y="530" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <mxCell id="cross2" value="HTTP POST" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#82b366;fontColor=#82b366;fontSize=9;" edge="1" parent="1" source="bg_worker" target="api_gw">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="740" y="800" />
+              <mxPoint x="740" y="130" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <mxCell id="cross3" value="Groq API call&#xa;(Bearer token)" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#d79b00;dashed=1;fontColor=#d79b00;fontSize=9;" edge="1" parent="1" source="bg_worker" target="groq_api">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="745" y="760" />
+              <mxPoint x="745" y="350" />
+              <mxPoint x="1210" y="350" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <mxCell id="cross4" value="Fetch captions" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#d79b00;dashed=1;fontColor=#d79b00;fontSize=9;exitX=1;exitY=0.25;exitDx=0;exitDy=0;" edge="1" parent="1" source="transcript_js" target="yt_servers">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="750" y="405" />
+              <mxPoint x="750" y="180" />
+              <mxPoint x="1210" y="180" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <mxCell id="cross5" value="yt-dlp download" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#d79b00;fontColor=#d79b00;fontSize=9;" edge="1" parent="1" source="stt_svc" target="ytdlp_tool">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1180" y="480" />
+              <mxPoint x="1180" y="675" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <mxCell id="cross6" value="Whisper transcribe" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#d79b00;fontColor=#d79b00;fontSize=9;" edge="1" parent="1" source="stt_svc" target="whisper_model">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1190" y="490" />
+              <mxPoint x="1190" y="530" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <mxCell id="cross7" value="START_TEST msg" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#b85450;fontColor=#b85450;fontSize=9;" edge="1" parent="1" source="user_action3" target="popup">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="cross8" value="Quiz answers" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#b85450;fontColor=#b85450;fontSize=9;" edge="1" parent="1" source="user_action4" target="quiz_ui">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="cross9" value="Score + explanation" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#b85450;fontColor=#b85450;fontSize=9;" edge="1" parent="1" source="quiz_ui" target="user_action5">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="290" y="705" />
+              <mxPoint x="290" y="682" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <mxCell id="legend_box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="20" y="1030" width="500" height="110" as="geometry" />
+        </mxCell>
+        <mxCell id="legend_title" value="Legend" style="text;html=1;fontSize=12;fontStyle=1;align=left;verticalAlign=middle;fillColor=none;strokeColor=none;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="30" y="1035" width="100" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="leg1" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="30" y="1060" width="20" height="15" as="geometry" />
+        </mxCell>
+        <mxCell id="leg1t" value="Primary path (captions available)" style="text;html=1;fontSize=10;align=left;verticalAlign=middle;fillColor=none;strokeColor=none;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="55" y="1055" width="200" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="leg2" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="30" y="1085" width="20" height="15" as="geometry" />
+        </mxCell>
+        <mxCell id="leg2t" value="Secondary / fallback path" style="text;html=1;fontSize=10;align=left;verticalAlign=middle;fillColor=none;strokeColor=none;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="55" y="1080" width="200" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="leg3" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1">
+          <mxGeometry x="30" y="1110" width="20" height="15" as="geometry" />
+        </mxCell>
+        <mxCell id="leg3t" value="STT fallback (no captions at all)" style="text;html=1;fontSize=10;align=left;verticalAlign=middle;fillColor=none;strokeColor=none;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="55" y="1105" width="200" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="leg4" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" vertex="1" parent="1">
+          <mxGeometry x="270" y="1060" width="20" height="15" as="geometry" />
+        </mxCell>
+        <mxCell id="leg4t" value="Extension component" style="text;html=1;fontSize=10;align=left;verticalAlign=middle;fillColor=none;strokeColor=none;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="295" y="1055" width="200" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="leg5" value="" style="shape=cylinder3;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="270" y="1082" width="20" height="18" as="geometry" />
+        </mxCell>
+        <mxCell id="leg5t" value="Data store" style="text;html=1;fontSize=10;align=left;verticalAlign=middle;fillColor=none;strokeColor=none;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="295" y="1080" width="200" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="leg6" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" vertex="1" parent="1">
+          <mxGeometry x="270" y="1110" width="20" height="15" as="geometry" />
+        </mxCell>
+        <mxCell id="leg6t" value="External service / tool" style="text;html=1;fontSize=10;align=left;verticalAlign=middle;fillColor=none;strokeColor=none;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="295" y="1105" width="200" height="25" as="geometry" />
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

@@ -42,10 +42,25 @@ document.addEventListener('DOMContentLoaded', async () => {
     loadingEl.classList.add('hidden');
     readyEl.classList.remove('hidden');
 
+    // Load saved question count
+    const qCountInput = document.getElementById('question-count');
+    chrome.storage.local.get(['questionCount'], (res) => {
+      if (res.questionCount) {
+        qCountInput.value = res.questionCount;
+      }
+    });
+
     // Start button
     startBtn.addEventListener('click', async () => {
       const mode = document.querySelector('input[name="mode"]:checked').value;
-      await chrome.tabs.sendMessage(tab.id, { type: 'START_TEST', mode });
+      
+      let qCount = parseInt(qCountInput.value, 10);
+      if (isNaN(qCount) || qCount < 1) qCount = 1;
+      if (qCount > 20) qCount = 20;
+      
+      chrome.storage.local.set({ questionCount: qCount });
+
+      await chrome.tabs.sendMessage(tab.id, { type: 'START_TEST', mode, questionCount: qCount });
       window.close();
     });
 

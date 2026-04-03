@@ -6,11 +6,30 @@
 let _panelHost = null;
 let _shadow = null;
 
+let _globalKeyBlocker = null;
+
 function createQuizPanel() {
   removeQuizPanel();
 
   _panelHost = document.createElement('div');
   _panelHost.id = 'activelens-panel-host';
+  
+  // Full-Screen Click Blocker Layer (Pure CSS Approach)
+  _panelHost.style.cssText = `
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 2147483647;
+    pointer-events: none;
+    background: rgba(0, 0, 0, 0.75);
+  `;
+  
+  // Lock the YouTube background interaction
+  document.body.style.overflow = "hidden";
+  document.body.style.pointerEvents = "none";
+
   _shadow = _panelHost.attachShadow({ mode: 'open' });
 
   const style = document.createElement('style');
@@ -23,6 +42,28 @@ function createQuizPanel() {
   _shadow.appendChild(wrapper);
 
   document.body.appendChild(_panelHost);
+  
+  // [ISSUE 1 FIX]: Keyboard Leak Prevention
+  _globalKeyBlocker = (e) => {
+    if (!_panelHost) return;
+    
+    const isInsidePanel = e.composedPath().includes(_panelHost);
+    const blockedKeys = [" ", "ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "k", "j", "l", "m", "f", "c", "Escape"];
+
+    if (isInsidePanel) {
+      // If typing inside the extension, stop YouTube from catching it
+      e.stopPropagation();
+      // NO preventDefault() so input fields still work normally
+    } else if (blockedKeys.includes(e.key)) {
+      // Hard block YouTube shortcuts if user randomly clicked away
+      e.preventDefault();
+      e.stopPropagation();
+    }
+  };
+  
+  document.addEventListener("keydown", _globalKeyBlocker, true);
+  document.addEventListener("keyup", _globalKeyBlocker, true);
+  
   return _shadow;
 }
 
@@ -30,6 +71,17 @@ function removeQuizPanel() {
   if (_panelHost && _panelHost.parentNode) {
     _panelHost.parentNode.removeChild(_panelHost);
   }
+  
+  if (_globalKeyBlocker) {
+    document.removeEventListener("keydown", _globalKeyBlocker, true);
+    document.removeEventListener("keyup", _globalKeyBlocker, true);
+    _globalKeyBlocker = null;
+  }
+  
+  // Restore YouTube background interaction
+  document.body.style.overflow = "";
+  document.body.style.pointerEvents = "";
+
   _panelHost = null;
   _shadow = null;
 }
@@ -201,8 +253,9 @@ function renderComplete(state, onExit) {
 const PANEL_CSS = `
   * { box-sizing: border-box; margin: 0; padding: 0; }
   .al-panel {
-    position: fixed; top: 70px; right: 16px;
-    width: 380px; max-height: calc(100vh - 90px);
+    position: absolute; top: 100px; right: 20px;
+    width: 380px; max-height: calc(100vh - 120px);
+    pointer-events: auto;
     background: #0f0f0f; color: #e8e8e8;
     border: 1px solid #2a2a2a; border-radius: 12px;
     font-family: 'Segoe UI', 'Inter', Arial, sans-serif;

@@ -41,57 +41,71 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   }
 
   if (msg.type === 'START_TEST') {
-    startTest(msg.mode);
+    startTest(msg.mode, msg.questionCount || 5);
     sendResponse({ started: true });
     return;
   }
 });
 
 // ── Core test flow ──────────────────────────────────
-async function startTest(mode) {
+async function startTest(mode, questionCount) {
   const videoId = getVideoId();
   if (!videoId) return;
 
   createQuizPanel();
   renderLoading('Extracting transcript...');
 
+  // Listen for STT progress updates from transcript.js
+  const sttProgressHandler = (e) => {
+    if (e.detail && e.detail.message) {
+      renderLoading(e.detail.message);
+    }
+  };
+  window.addEventListener('activelens-stt-progress', sttProgressHandler);
+
   // 1. Extract transcript
   const transcript = await extractTranscript(videoId);
+  
+  // Cleanup STT listener
+  window.removeEventListener('activelens-stt-progress', sttProgressHandler);
+  
   if (!transcript || transcript.length === 0) {
-    renderError('No transcript available for this video. Please try a video with captions enabled.');
+    renderError('Unable to generate transcript for this video. No captions available and audio transcription failed.');
     return;
   }
 
-  // 2. Segment transcript
-  let segments;
-  if (mode === 'chapters') {
-    renderLoading('Detecting chapters...');
-    const chapters = await extractChapters(videoId);
-    if (!chapters || chapters.length < 3) {
-      renderError('No chapters found. Please use "10-minute interval" mode instead.');
-      return;
-    }
-    segments = mapTranscriptToChapters(transcript, chapters);
-  } else {
-    segments = segmentByTime(transcript, 600);
-  }
+  // 2. Simplify Transcript Usage (No segmentation logic for now)
+  const transcriptText = transcript
+    .map(t => t.text)
+    .join(" ")
+    .slice(0, 3000);
 
-  if (segments.length === 0) {
-    renderError('Video too short to generate meaningful segments.');
-    return;
-  }
+  const segments = [{
+    title: "Full Video",
+    startTime: 0,
+    endTime: 999999,
+    text: transcriptText,
+    questions: null
+  }];
 
-  // 3. Generate questions for first segment
-  renderLoading('Generating questions with AI...');
-  const firstQuestions = await requestQuestions(videoId, 0, segments[0]);
-  if (!firstQuestions) return; // error already rendered
-  segments[0].questions = firstQuestions;
+  // 3. Generate ALL questions at once from the full transcript
+  const totalQuestions = questionCount;
+  const sessionSeed = Math.random().toString(36).substring(7);
 
-  // 4. Initialize state
+  renderLoading('Generating questions...');
+  const allQuestions = await requestFullQuiz(videoId, transcriptText, totalQuestions);
+  if (!allQuestions) return; // error already rendered
+
+  // 4. Distribute questions evenly across segments
+  distributeQuestions(allQuestions, segments, questionCount);
+
+  // 5. Initialize state
   alState = {
     videoId,
     mode,
+    questionCount,
     status: 'active',
+    sessionSeed,
     segments,
     currentSegment: 0,
     currentQuestion: 0,
@@ -101,15 +115,17 @@ async function startTest(mode) {
   showCurrentQuestion();
 }
 
-async function requestQuestions(videoId, segIdx, segment) {
+/**
+ * Sends a single GENERATE_QUIZ message and returns all questions.
+ */
+async function requestFullQuiz(videoId, transcriptText, totalQuestions) {
   try {
     const resp = await chrome.runtime.sendMessage({
-      type: 'GENERATE_QUESTIONS',
+      type: 'GENERATE_QUIZ',
       data: {
         videoId,
-        segmentIndex: segIdx,
-        text: segment.text,
-        title: segment.title
+        transcriptText,
+        totalQuestions
       }
     });
     if (resp.success) return resp.questions;
@@ -118,6 +134,28 @@ async function requestQuestions(videoId, segIdx, segment) {
   } catch (e) {
     renderError('Could not connect to background service: ' + e.message);
     return null;
+  }
+}
+
+/**
+ * Distributes questions evenly across segments.
+ * Each segment receives `perSegment` questions from the pool.
+ */
+function distributeQuestions(allQuestions, segments, perSegment) {
+  let idx = 0;
+  for (const seg of segments) {
+    seg.questions = allQuestions.slice(idx, idx + perSegment);
+    idx += perSegment;
+  }
+  // If there are leftover questions (from rounding), give them to the last segment
+  if (idx < allQuestions.length) {
+    segments[segments.length - 1].questions.push(...allQuestions.slice(idx));
+  }
+  // Safety: ensure every segment has at least one question
+  for (const seg of segments) {
+    if (!seg.questions || seg.questions.length === 0) {
+      seg.questions = [allQuestions[0]]; // fallback
+    }
   }
 }
 
@@ -165,19 +203,9 @@ async function handleNext() {
     return;
   }
 
-  // Move to next segment
+  // Move to next segment (questions already loaded)
   if (alState.currentSegment + 1 < alState.segments.length) {
-    const nextSegIdx = alState.currentSegment + 1;
-    const nextSeg = alState.segments[nextSegIdx];
-
-    if (!nextSeg.questions) {
-      renderLoading(`Generating questions for: ${nextSeg.title}...`);
-      const q = await requestQuestions(alState.videoId, nextSegIdx, nextSeg);
-      if (!q) return;
-      nextSeg.questions = q;
-    }
-
-    alState.currentSegment = nextSegIdx;
+    alState.currentSegment++;
     alState.currentQuestion = 0;
     showCurrentQuestion();
     await saveState();

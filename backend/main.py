@@ -14,7 +14,7 @@ Endpoints:
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from database import init_db
-from routers import syllabus, assessment, transcribe, transcript_fetch
+from routers import syllabus, assessment, transcribe, transcript_fetch, stt_fallback
 
 # ── Initialize App ──
 app = FastAPI(
@@ -37,6 +37,7 @@ app.include_router(syllabus.router)
 app.include_router(assessment.router)
 app.include_router(transcribe.router)
 app.include_router(transcript_fetch.router)
+app.include_router(stt_fallback.router)
 
 
 # ── Startup Event ──
@@ -63,5 +64,7 @@ async def root():
             "evaluate_answer": "POST /assessment/evaluate",
             "transcribe_audio": "POST /transcribe/audio",
             "get_transcript": "POST /get-transcript",
+            "generate_transcript_stt": "POST /generate-transcript",
+            "transcript_status": "GET /transcript-status",
         },
     }
