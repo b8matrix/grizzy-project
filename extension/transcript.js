@@ -178,7 +178,7 @@ function standardizeTranscript(items) {
 // ─── Strategy 4: STT Generation Fallback ────────────────────
 
 async function fetchTranscriptSTT(videoId) {
-  const MAX_POLLS = 60;
+  const MAX_POLLS = 360; // Up to 30 minutes of polling for giant videos
   const POLL_INTERVAL = 5000;
 
   try {
