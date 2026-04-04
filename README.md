@@ -1,4 +1,4 @@
-# Grizzy (ActiveLens)
+# Grizzy 
 
 Turn YouTube videos into interactive practice tests.
 
